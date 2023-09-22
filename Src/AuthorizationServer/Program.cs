@@ -1,6 +1,15 @@
-var builder = WebApplication.CreateBuilder(args);
-var app = builder.Build();
+namespace AuthorizationServer;
 
-app.MapGet("/", () => "Hello World!");
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
+        Startup.ConfigureServices(builder.Services);
 
-app.Run();
+        var app = builder.Build();
+        Startup.Configure(app, app.Environment);
+
+        app.Run();
+    }
+}
