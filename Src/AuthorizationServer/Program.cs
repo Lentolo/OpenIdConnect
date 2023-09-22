@@ -1,5 +1,7 @@
 namespace AuthorizationServer;
 
+//https://dev.to/robinvanderknaap/setting-up-an-authorization-server-with-openiddict-part-i-introduction-4jid
+
 public class Program
 {
     public static void Main(string[] args)
