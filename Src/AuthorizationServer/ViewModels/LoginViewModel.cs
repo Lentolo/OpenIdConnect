@@ -1,27 +1,27 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
-namespace AuthorizationServer.ViewModels
+namespace AuthorizationServer.ViewModels;
+
+public class LoginViewModel
 {
-    public class LoginViewModel
+    [Required]
+    public string Username
     {
-        [Required]
-        public string Username
-        {
-            get;
-            set;
-        }
+        get;
+        set;
+    }
 
-        [Required]
-        public string Password
-        {
-            get;
-            set;
-        }
+    [Required]
+    public string Password
+    {
+        get;
+        set;
+    }
 
-        public string ReturnUrl
-        {
-            get;
-            set;
-        }
+    public string? ReturnUrl
+    {
+        get;
+        set;
     }
 }

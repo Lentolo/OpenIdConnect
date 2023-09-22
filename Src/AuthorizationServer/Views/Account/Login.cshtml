@@ -1,4 +1,8 @@
 ﻿@model AuthorizationServer.ViewModels.LoginViewModel
+
+
+@ViewData["Errors"]
+
 <form autocomplete="off" asp-route="Login">
     <input type="hidden" asp-for="ReturnUrl"/>
     <div class="card">

@@ -5,52 +5,53 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AuthorizationServer.Controllers
+namespace AuthorizationServer.Controllers;
+
+public class AccountController : Controller
 {
-    public class AccountController : Controller
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult Login(string returnUrl = null)
     {
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult Login(string returnUrl = null)
-        {
-            ViewData["ReturnUrl"] = returnUrl;
-            return View();
-        }
+        ViewData["ReturnUrl"] = returnUrl;
+        return View();
+    }
 
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model)
-        {
-            ViewData["ReturnUrl"] = model.ReturnUrl;
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Login(LoginViewModel model)
+    {
+        ViewData["ReturnUrl"] = model.ReturnUrl;
 
-            if (ModelState.IsValid)
+        if (ModelState.IsValid)
+        {
+            var claims = new List<Claim>
             {
-                var claims = new List<Claim>
-                {
-                    new(ClaimTypes.Name, model.Username)
-                };
+                new(ClaimTypes.Name, model.Username)
+            };
 
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-                await HttpContext.SignInAsync(new ClaimsPrincipal(claimsIdentity));
+            await HttpContext.SignInAsync(new ClaimsPrincipal(claimsIdentity));
 
-                if (Url.IsLocalUrl(model.ReturnUrl))
-                {
-                    return Redirect(model.ReturnUrl);
-                }
-
-                return RedirectToAction(nameof(HomeController.Index), "Home");
+            if (Url.IsLocalUrl(model.ReturnUrl))
+            {
+                return Redirect(model.ReturnUrl);
             }
-
-            return View(model);
-        }
-
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync();
 
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
+
+        ViewData["Errors"] = string.Join("\r\n",            ModelState.Values.SelectMany(v=>v.Errors).Select(e=>e.ErrorMessage));
+
+        return View(model);
+    }
+
+    public async Task<IActionResult> Logout()
+    {
+        await HttpContext.SignOutAsync();
+
+        return RedirectToAction(nameof(HomeController.Index), "Home");
     }
 }
