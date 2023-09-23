@@ -35,7 +35,8 @@ public static class Startup
                  // Register the OpenIddict server components.
                 .AddServer(options =>
                  {
-                     options.AllowAuthorizationCodeFlow().RequireProofKeyForCodeExchange();
+                     options.AllowAuthorizationCodeFlow()
+                        .RequireProofKeyForCodeExchange();
 
                      options.AllowClientCredentialsFlow();
 
