@@ -16,6 +16,9 @@ namespace AuthenticationClient
             Startup.ConfigureServices(builder.Services);
             var app = builder.Build();
 
+            using var s=app.Services.CreateScope();
+            s.ServiceProvider.GetService<ApplicationDbContext>().Database.EnsureCreated();
+
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
@@ -35,7 +38,7 @@ namespace AuthenticationClient
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
-            Startup.Configure(app,app.Environment);
+            Startup.Configure(app, app.Environment);
 
             app.Run();
         }

@@ -1,15 +1,12 @@
 using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
+using System.IO;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.Client;
-using OpenIddict.Client.AspNetCore;
 
 namespace AuthenticationClient;
 
@@ -17,12 +14,22 @@ public static class Startup
 {
     public static void ConfigureServices(IServiceCollection services)
     {
+        services.AddDbContext<ApplicationDbContext>(options =>
+        {
+            // Configure the context to use sqlite.
+            options.UseSqlite($"Filename={System.IO.Path.GetDirectoryName(typeof(ApplicationDbContext).Assembly.Location)}\\db.sqlite");
+
+            // Register the entity sets needed by OpenIddict.
+            // Note: use the generic overload if you need
+            // to replace the default OpenIddict entities.
+            options.UseOpenIddict();
+        });
         services.AddControllersWithViews();
-        services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-                 {
-                     options.LoginPath = "/account/login";
-                 });
+        services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            //options.AddScheme(OpenIddictClientAspNetCoreDefaults.AuthenticationScheme;
+        });
 
         //services.AddDbContext<DbContext>(options =>
         //{
@@ -37,8 +44,9 @@ public static class Startup
                 .AddCore(options =>
                  {
                      // Configure OpenIddict to use the EF Core stores/models.
-                     //options.UseEntityFrameworkCore()
-                     //       .UseDbContext<DbContext>();
+                     options
+                        .UseEntityFrameworkCore()
+                        .UseDbContext<ApplicationDbContext>();
                  })
                 .AddClient(options =>
                  {

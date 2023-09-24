@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
-
+    
 namespace AuthenticationServer;
 
 public class TestData : IHostedService
@@ -25,11 +25,11 @@ public class TestData : IHostedService
         {
             await manager.CreateAsync(new OpenIddictApplicationDescriptor
             {
-                ClientId = "postman",
+                ClientId = "postman",   
                 ClientSecret = "postman-secret",
                 DisplayName = "Postman",
                 RedirectUris={
-                    new Uri("https://oauth.pstmn.io/v1/callback")
+                    new Uri("https://localhost:7290/callback/login/local")
                 },
                 Permissions =
                 {
