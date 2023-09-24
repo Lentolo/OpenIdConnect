@@ -1,10 +1,15 @@
 using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.Client;
+using OpenIddict.Client.AspNetCore;
 
 namespace AuthenticationClient;
 
@@ -42,8 +47,8 @@ public static class Startup
 
                      // Register the signing and encryption credentials used to protect
                      // sensitive data like the state tokens produced by OpenIddict.
-                     //options.AddDevelopmentEncryptionCertificate()
-                     //       .AddDevelopmentSigningCertificate();
+                     options.AddDevelopmentEncryptionCertificate()
+                            .AddDevelopmentSigningCertificate();
 
                      // Register the ASP.NET Core host and configure the ASP.NET Core-specific options.
                      options.UseAspNetCore()
@@ -55,13 +60,13 @@ public static class Startup
                      // Register the System.Net.Http integration and use the identity of the current
                      // assembly as a more specific user agent, which can be useful when dealing with
                      // providers that use the user agent as a way to throttle requests (e.g Reddit).
-                     //options.UseSystemNetHttp()
-                     //       .SetProductInformation(typeof(Startup).Assembly);
+                     options.UseSystemNetHttp()
+                            .SetProductInformation(typeof(Startup).Assembly);
 
                      // Add a client registration matching the client application definition in the server project.
                      options.AddRegistration(new OpenIddictClientRegistration
                      {
-                         Issuer = new Uri("https://localhost:44394/", UriKind.Absolute),
+                         Issuer = new Uri("https://localhost:7177/", UriKind.Absolute),
 
                          ClientId = "postman",
                          ClientSecret = "postman-secret",
@@ -98,5 +103,7 @@ public static class Startup
         {
             endpoints.MapDefaultControllerRoute();
         });
+
+        app.MapGet("/login", MinimalApis.Login);
     }
 }

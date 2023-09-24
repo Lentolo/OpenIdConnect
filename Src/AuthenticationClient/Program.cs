@@ -13,6 +13,7 @@ namespace AuthenticationClient
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
+            Startup.ConfigureServices(builder.Services);
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -33,6 +34,8 @@ namespace AuthenticationClient
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
+
+            Startup.Configure(app,app.Environment);
 
             app.Run();
         }
