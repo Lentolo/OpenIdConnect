@@ -7,7 +7,7 @@ using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace AuthorizationServer.Controllers;
+namespace AuthenticationServer.Controllers;
 
 public class AuthorizationController : Controller
 {

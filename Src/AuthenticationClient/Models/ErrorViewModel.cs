@@ -1,4 +1,4 @@
-namespace Client.Models
+namespace AuthenticationClient.Models
 {
     public class ErrorViewModel
     {

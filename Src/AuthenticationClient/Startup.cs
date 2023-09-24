@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.Client;
 
-namespace Client;
+namespace AuthenticationClient;
 
 public static class Startup
 {

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
-namespace AuthorizationServer;
+namespace AuthenticationServer;
 
 public static class Startup
 {

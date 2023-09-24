@@ -1,11 +1,11 @@
 ﻿using System.Security.Claims;
-using AuthorizationServer.ViewModels;
+using AuthenticationServer.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AuthorizationServer.Controllers;
+namespace AuthenticationServer.Controllers;
 
 public class AccountController : Controller
 {

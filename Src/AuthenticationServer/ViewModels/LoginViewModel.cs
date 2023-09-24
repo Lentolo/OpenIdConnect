@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 
-namespace AuthorizationServer.ViewModels;
+namespace AuthenticationServer.ViewModels;
 
 public class LoginViewModel
 {

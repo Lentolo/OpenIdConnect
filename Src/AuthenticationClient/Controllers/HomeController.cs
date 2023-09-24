@@ -1,9 +1,9 @@
-﻿using Client.Models;
+﻿using System.Diagnostics;
+using AuthenticationClient.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 
-namespace Client.Controllers
+namespace AuthenticationClient.Controllers
 {
     public class HomeController : Controller
     {

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 
-namespace AuthorizationServer;
+namespace AuthenticationServer;
 
 public class TestData : IHostedService
 {

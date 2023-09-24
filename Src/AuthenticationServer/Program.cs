@@ -1,4 +1,4 @@
-namespace AuthorizationServer;
+namespace AuthenticationServer;
 
 //https://dev.to/robinvanderknaap/setting-up-an-authorization-server-with-openiddict-part-i-introduction-4jid
 
