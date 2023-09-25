@@ -1,14 +1,13 @@
-using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Client;
 
-namespace AuthenticationClient;
+namespace TCPOS.Authentication.OpenId.Consumer.Extensions;
 
-public static class Startup111
+public static class ConfigurationExtensions
 {
-    public static void NewMethod(IServiceCollection services)
+    public static void AddOpenIdConsumer(this IServiceCollection services)
     {
         services.AddOpenIddict()
                  // Register the OpenIddict core components.
@@ -40,7 +39,7 @@ public static class Startup111
                      // assembly as a more specific user agent, which can be useful when dealing with
                      // providers that use the user agent as a way to throttle requests (e.g Reddit).
                      options.UseSystemNetHttp()
-                            .SetProductInformation(typeof(Startup111).Assembly);
+                            .SetProductInformation(typeof(ConfigurationExtensions).Assembly);
 
                      // Add a client registration matching the client application definition in the server project.
                      options.AddRegistration(new OpenIddictClientRegistration
@@ -64,9 +63,9 @@ public static class Startup111
                  });
     }
 
-    public static void NewMethod111(WebApplication app)
+    public static void UseOpenIdConsumer(this WebApplication app)
     {
-        app.MapGet("/login", MinimalApis.Login);
-        app.MapGet("/callback/login/local", MinimalApis.LoginCallback);
+        app.MapGet("/login", Delegates.Delegates.Login);
+        app.MapGet("/callback/login/local", Delegates.Delegates.LoginCallback);
     }
 }

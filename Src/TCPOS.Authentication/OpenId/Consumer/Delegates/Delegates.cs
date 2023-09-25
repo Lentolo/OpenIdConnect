@@ -6,9 +6,9 @@ using OpenIddict.Abstractions;
 using OpenIddict.Client.AspNetCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace TCPOS.Authentication.OpenId.Consumer;
+namespace TCPOS.Authentication.OpenId.Consumer.Delegates;
 
-public static class MinimalApis
+public static class Delegates
 {
     public static async Task LoginCallback(HttpContext ctx)
     {

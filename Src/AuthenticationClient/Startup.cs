@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.Client;
+using TCPOS.Authentication.OpenId.Consumer;
+using TCPOS.Authentication.OpenId.Consumer.Extensions;
 
 namespace AuthenticationClient;
 
@@ -45,7 +47,7 @@ public static class Startup
         //    // Register the entity sets needed by OpenIddict.
         //    options.UseOpenIddict();
         //});
-        Startup111.NewMethod(services);
+        services.AddOpenIdConsumer();
     }
 
     public static void Configure(WebApplication app)
@@ -67,6 +69,6 @@ public static class Startup
             endpoints.MapDefaultControllerRoute();
         });
 
-        Startup111.NewMethod111(app);
+        app.UseOpenIdConsumer();
     }
 }

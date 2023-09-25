@@ -2,6 +2,7 @@ using AuthenticationServer.Controllers;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using TCPOS.Authentication.OpenId.Producer;
+using TCPOS.Authentication.OpenId.Producer.Extensions;
 
 namespace AuthenticationServer;
 
@@ -24,7 +25,7 @@ public static class Startup
             // Register the entity sets needed by OpenIddict.
             options.UseOpenIddict();
         });
-        services.AddProducer();
+        services.AddOpenIdProducer(c=>{});
     }
 
     public static void Configure(WebApplication app)
@@ -46,6 +47,6 @@ public static class Startup
             endpoints.MapDefaultControllerRoute();
         });
 
-        app.UseProducer();
+        app.UseOpenIdProducer();
     }
 }
