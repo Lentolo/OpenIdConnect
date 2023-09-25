@@ -4,27 +4,32 @@ public class Configuration
 {
     internal Configuration()
     {}
-    public bool AllowClientCredentialsFlow
+
+    public string Issuer
     {
         get;
         set;
     }
-    public bool AllowAuthorizationCodeFlow
+
+    public string ClientId
     {
         get;
         set;
     }
-    public bool RequirePKCE
+
+    public string ClientSecret
     {
         get;
         set;
     }
-    public string AuthorizationEndpointUri
+
+    public string CallBackUri
     {
         get;
         set;
     }
-    public string TokenEndpointUri
+
+    public string LoginUri
     {
         get;
         set;

@@ -7,8 +7,13 @@ namespace TCPOS.Authentication.OpenId.Consumer.Extensions;
 
 public static class ConfigurationExtensions
 {
-    public static void AddOpenIdConsumer(this IServiceCollection services)
+    public static void AddOpenIdConsumer(this IServiceCollection services, Action<Configuration.Configuration> action)
     {
+        var configuration = new Configuration.Configuration();
+        action(configuration);
+        //check configuration
+        services.AddSingleton(configuration);
+
         services.AddOpenIddict()
                  // Register the OpenIddict core components.
                 .AddCore(options =>
@@ -42,12 +47,12 @@ public static class ConfigurationExtensions
                             .SetProductInformation(typeof(ConfigurationExtensions).Assembly);
 
                      // Add a client registration matching the client application definition in the server project.
-                     options.AddRegistration(new OpenIddictClientRegistration
+                     var registration = new OpenIddictClientRegistration
                      {
-                         Issuer = new Uri("https://localhost:7177/", UriKind.Absolute),
+                         Issuer = new Uri(configuration.Issuer, UriKind.Absolute),
 
-                         ClientId = "postman",
-                         ClientSecret = "postman-secret",
+                         ClientId = configuration.ClientId,
+                         ClientSecret = configuration.ClientSecret,
                          Scopes =
                          {
                              "api"
@@ -57,15 +62,17 @@ public static class ConfigurationExtensions
                          // URI per provider, unless all the registered providers support returning a special "iss"
                          // parameter containing their URL as part of authorization responses. For more information,
                          // see https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics#section-4.4.
-                         RedirectUri = new Uri("callback/login/local", UriKind.Relative)
+                         RedirectUri = new Uri(configuration.CallBackUri, UriKind.Relative)
                          //PostLogoutRedirectUri = new Uri("callback/logout/local", UriKind.Relative)
-                     });
+                     };
+                     options.AddRegistration(registration);
                  });
     }
 
     public static void UseOpenIdConsumer(this WebApplication app)
     {
-        app.MapGet("/login", Delegates.Delegates.Login);
-        app.MapGet("/callback/login/local", Delegates.Delegates.LoginCallback);
+        var configuration = app.Services.GetRequiredService<Configuration.Configuration>();
+        app.MapGet(configuration.LoginUri, Delegates.Delegates.Login);
+        app.MapGet(configuration.CallBackUri, Delegates.Delegates.LoginCallback);
     }
 }

@@ -47,7 +47,7 @@ public static class Startup
         //    // Register the entity sets needed by OpenIddict.
         //    options.UseOpenIddict();
         //});
-        services.AddOpenIdConsumer();
+        services.AddOpenIdConsumer(c=>{});
     }
 
     public static void Configure(WebApplication app)

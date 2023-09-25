@@ -14,13 +14,13 @@ public class Program
         Startup.ConfigureServices(builder.Services);
 
         var app = builder.Build();
-        Startup.Configure(app);
+        await Startup.Configure(app);
 
         using var scope = app.Services.CreateScope();
 
         var context = scope.ServiceProvider.GetRequiredService<DbContext>();
         await context.Database.EnsureCreatedAsync();
 
-        app.Run();
+        await app.RunAsync();
     }
 }

@@ -23,19 +23,19 @@ public sealed class Configuration
         set;
     } = false;
 
-    public string AuthorizationEndpointUri
+    public Uri AuthorizationEndpointUri
     {
         get;
         set;
-    } = "";
+    } 
 
-    public string TokenEndpointUri
+    public Uri TokenEndpointUri
     {
         get;
         set;
-    } = "";
+    } 
 
-    public Application Application
+    public HashSet<Application> Applications
     {
         get;
     } = new();

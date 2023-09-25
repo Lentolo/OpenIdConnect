@@ -1,7 +1,6 @@
-using AuthenticationServer.Controllers;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using TCPOS.Authentication.OpenId.Producer;
+using TCPOS.Authentication.OpenId.Producer.Configuration;
 using TCPOS.Authentication.OpenId.Producer.Extensions;
 
 namespace AuthenticationServer;
@@ -25,10 +24,28 @@ public static class Startup
             // Register the entity sets needed by OpenIddict.
             options.UseOpenIddict();
         });
-        services.AddOpenIdProducer(c=>{});
+        services.AddOpenIdProducer(c =>
+        {
+            c.AllowAuthorizationCodeFlow = true;
+            c.AuthorizationEndpointUri = new Uri("/auth/connect/authorize",UriKind.Relative);
+            c.RequirePKCE = true;
+
+            c.AllowClientCredentialsFlow = true;
+            c.TokenEndpointUri = new Uri("/auth/connect/token",UriKind.Relative);
+
+            var application = new Application
+            {
+                Scope = "api",
+                ClientId = "test",
+                ClientSecret = "test-test",
+                DisplayName = "Test"
+            };
+            application.RedirectUris.Add(new Uri("https://localhost:7290/auth/login/callback"));
+            c.Applications.Add(application);
+        });
     }
 
-    public static void Configure(WebApplication app)
+    public static async Task Configure(WebApplication app)
     {
         //app.MapGet("/", () => "Hello World!");
         if (app.Environment.IsDevelopment())
@@ -47,6 +64,6 @@ public static class Startup
             endpoints.MapDefaultControllerRoute();
         });
 
-        app.UseOpenIdProducer();
+        await app.UseOpenIdProducer();
     }
 }

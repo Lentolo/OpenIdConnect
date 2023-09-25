@@ -20,7 +20,7 @@ public static class ConfigurationExtensions
 
         services.AddOpenIddict()
 
-                // Register the OpenIddict core components.
+                 // Register the OpenIddict core components.
                 .AddCore(options =>
                  {
                      // Configure OpenIddict to use the EF Core stores/models.
@@ -28,7 +28,7 @@ public static class ConfigurationExtensions
                             .UseDbContext<DbContext>();
                  })
 
-                // Register the OpenIddict server components.
+                 // Register the OpenIddict server components.
                 .AddServer(options =>
                  {
                      options
@@ -67,48 +67,47 @@ public static class ConfigurationExtensions
 
         app.ChainIf(configuration.AllowAuthorizationCodeFlow, a =>
         {
-            a.MapPost(configuration.AuthorizationEndpointUri, Delegates.Delegates.Authorize);
-            a.MapGet(configuration.AuthorizationEndpointUri, Delegates.Delegates.Authorize);
+            a.MapPost(configuration.AuthorizationEndpointUri.PathAndQuery, Delegates.Delegates.Authorize);
+            a.MapGet(configuration.AuthorizationEndpointUri.PathAndQuery, Delegates.Delegates.Authorize);
         });
 
         app.ChainIf(configuration.AllowClientCredentialsFlow || configuration.AllowAuthorizationCodeFlow, a =>
         {
-            app.MapPost(configuration.TokenEndpointUri, Delegates.Delegates.Exchange);
+            app.MapPost(configuration.TokenEndpointUri.PathAndQuery, Delegates.Delegates.Exchange);
         });
 
         using var scope = app.Services.CreateScope();
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
-        if (await manager.FindByClientIdAsync(configuration.Application.ClientId) is null)
+
+        foreach (var application in configuration.Applications)
         {
-            var applicationDescriptor = new OpenIddictApplicationDescriptor
+            if (await manager.FindByClientIdAsync(application.ClientId) is null)
             {
-                ClientId = configuration.Application.ClientId,
-                ClientSecret = configuration.Application.ClientSecret,
-                DisplayName = configuration.Application.DisplayName,
-                RedirectUris =
+                var applicationDescriptor = new OpenIddictApplicationDescriptor
                 {
-                    new Uri(configuration.Application.RedirectUri)
-                },
-            };
+                    ClientId = application.ClientId,
+                    ClientSecret = application.ClientSecret,
+                    DisplayName = application.DisplayName
+                };
+                applicationDescriptor.RedirectUris.Union(application.RedirectUris);
 
-            if (configuration.AllowAuthorizationCodeFlow)
-            {
-                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Code);
-                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Authorization);
-                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
-                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
+                if (configuration.AllowAuthorizationCodeFlow)
+                {
+                    applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Code);
+                    applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Authorization);
+                    applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
+                    applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
+                }
+
+                if (configuration.AllowClientCredentialsFlow)
+                {
+                    applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Token);
+                    applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
+                    applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.ClientCredentials);
+                }
+
+                await manager.CreateAsync(applicationDescriptor);
             }
-
-            if (configuration.AllowClientCredentialsFlow)
-            {
-                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Token);
-                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
-                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.ClientCredentials);
-            }
-
-            await manager.CreateAsync(applicationDescriptor);
-
-            return app;
         }
 
         return app;

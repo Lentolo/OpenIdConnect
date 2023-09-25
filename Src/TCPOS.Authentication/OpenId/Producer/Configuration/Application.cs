@@ -1,8 +1,8 @@
 ﻿namespace TCPOS.Authentication.OpenId.Producer.Configuration;
 
-public sealed class Application
+public sealed class Application : IEquatable<Application>
 {
-    internal Application()
+    public Application()
     { }
 
     public string ClientId
@@ -22,14 +22,50 @@ public sealed class Application
         get;
         set;
     }
-    public string RedirectUri
+
+    public HashSet<Uri> RedirectUris
     {
         get;
-        set;
-    }
+    } = new();
+
     public string Scope
     {
         get;
         set;
+    }
+
+    public bool Equals(Application? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return string.Compare(ClientId, other.ClientId, StringComparison.OrdinalIgnoreCase) == 0;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return ReferenceEquals(this, obj) || obj is Application other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(ClientId);
+    }
+
+    public static bool operator ==(Application? left, Application? right)
+    {
+        return Equals(left, right);
+    }
+
+    public static bool operator !=(Application? left, Application? right)
+    {
+        return !Equals(left, right);
     }
 }
