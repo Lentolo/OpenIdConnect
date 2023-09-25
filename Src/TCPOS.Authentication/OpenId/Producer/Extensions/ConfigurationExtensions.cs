@@ -87,13 +87,13 @@ public static class ConfigurationExtensions
 
         app.ChainIf(configuration.AllowAuthorizationCodeFlow, a =>
         {
-            a.MapPost(configuration.AuthorizationEndpointUri.PathAndQuery, Delegates.Delegates.Authorize);
-            a.MapGet(configuration.AuthorizationEndpointUri.PathAndQuery, Delegates.Delegates.Authorize);
+            a.MapPost(configuration.AuthorizationEndpointUri.MakeAbsolute(new Uri("http://fake.host")).PathAndQuery, Delegates.Delegates.Authorize);
+            a.MapGet(configuration.AuthorizationEndpointUri.MakeAbsolute(new Uri("http://fake.host")).PathAndQuery, Delegates.Delegates.Authorize);
         });
 
         app.ChainIf(configuration.AllowClientCredentialsFlow || configuration.AllowAuthorizationCodeFlow, a =>
         {
-            app.MapPost(configuration.TokenEndpointUri.PathAndQuery, Delegates.Delegates.Exchange);
+            app.MapPost(configuration.TokenEndpointUri.MakeAbsolute(new Uri("http://fake.host")).PathAndQuery, Delegates.Delegates.Exchange);
         });
 
         using var scope = app.Services.CreateScope();
