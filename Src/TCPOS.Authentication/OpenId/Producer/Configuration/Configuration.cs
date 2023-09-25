@@ -1,4 +1,4 @@
-﻿namespace TCPOS.Authentication.OpenId.Producer.Delegates;
+﻿namespace TCPOS.Authentication.OpenId.Producer.Configuration;
 
 public class Configuration
 {

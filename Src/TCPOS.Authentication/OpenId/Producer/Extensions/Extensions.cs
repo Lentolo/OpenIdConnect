@@ -2,15 +2,14 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TCPOS.Authentication.Extensions;
-using TCPOS.Authentication.OpenId.Producer.Delegates;
 
-namespace TCPOS.Authentication.OpenId.Producer;
+namespace TCPOS.Authentication.OpenId.Producer.Extensions;
 
 public static class Extensions
 {
-    public static void AddProducer(this IServiceCollection services, Action<Configuration> action)
+    public static void AddProducer(this IServiceCollection services, Action<Configuration.Configuration> action)
     {
-        var configuration = new Configuration();
+        var configuration = new Configuration.Configuration();
         action(configuration);
         //check configuration
         services.AddSingleton(configuration);
@@ -60,7 +59,7 @@ public static class Extensions
 
     public static void UseProducer(this WebApplication app)
     {
-        var configuration = app.Services.GetRequiredService<Configuration>();
+        var configuration = app.Services.GetRequiredService<Configuration.Configuration>();
 
         if (configuration.AllowAuthorizationCodeFlow)
         {
