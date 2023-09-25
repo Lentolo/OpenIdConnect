@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
-using TCPOS.Authentication.Extensions;
+using TCPOS.Authentication.Utils;
+using TCPOS.Authentication.Utils.Extensions;
 
 namespace TCPOS.Authentication.OpenId.Producer.Extensions;
 
@@ -15,7 +16,9 @@ public static class ConfigurationExtensions
     {
         var configuration = new Configuration.Configuration();
         action(configuration);
-        //check configuration
+
+        CheckConfiguration(configuration);
+
         services.AddSingleton(configuration);
 
         services.AddOpenIddict()
@@ -59,6 +62,23 @@ public static class ConfigurationExtensions
                             .EnableTokenEndpointPassthrough()
                             .EnableAuthorizationEndpointPassthrough();
                  });
+    }
+
+    private static void CheckConfiguration(Configuration.Configuration configuration)
+    {
+        Safety.Check(configuration.AuthorizationEndpointUri != null, () => new ArgumentNullException(nameof(configuration.AuthorizationEndpointUri)));
+        Safety.Check(configuration.AuthorizationEndpointUri.IsRelativeWithAbsolutePath(), () => new ArgumentException($"{nameof(configuration.AuthorizationEndpointUri)} must have an absolute path"));
+        Safety.Check(configuration.TokenEndpointUri != null, () => new ArgumentNullException(nameof(configuration.TokenEndpointUri)));
+        Safety.Check(configuration.TokenEndpointUri.IsRelativeWithAbsolutePath(), () => new ArgumentException($"{nameof(configuration.TokenEndpointUri)} must have an absolute path"));
+        Safety.Check(configuration.Applications.Any(), () => new ArgumentException($"{nameof(configuration.Applications)} must be non empty"));
+
+        foreach (var application in configuration.Applications)
+        {
+            Safety.Check(!string.IsNullOrEmpty(application.ClientSecret), () => new ArgumentNullException(nameof(application.ClientSecret)));
+            Safety.Check(!string.IsNullOrEmpty(application.ClientId), () => new ArgumentNullException(nameof(application.ClientId)));
+            Safety.Check(!string.IsNullOrEmpty(application.DisplayName), () => new ArgumentNullException(nameof(application.ClientId)));
+            Safety.Check(application.RedirectUris.All(u => u.IsAbsoluteUri), () => new ArgumentException($"{nameof(application.RedirectUris)} contains one or more relative uris"));
+        }
     }
 
     public static async Task<WebApplication> UseOpenIdProducer(this WebApplication app)

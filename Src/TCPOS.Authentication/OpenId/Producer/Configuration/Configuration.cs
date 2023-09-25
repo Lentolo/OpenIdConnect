@@ -23,13 +23,13 @@ public sealed class Configuration
         set;
     } = false;
 
-    public Uri AuthorizationEndpointUri
+    public Uri? AuthorizationEndpointUri
     {
         get;
         set;
     } 
 
-    public Uri TokenEndpointUri
+    public Uri? TokenEndpointUri
     {
         get;
         set;
