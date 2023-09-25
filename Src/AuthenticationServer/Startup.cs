@@ -1,5 +1,7 @@
+using AuthenticationServer.Controllers;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using TCPOS.Authentication.OpenId.Producer;
 
 namespace AuthenticationServer;
 
@@ -22,42 +24,7 @@ public static class Startup
             // Register the entity sets needed by OpenIddict.
             options.UseOpenIddict();
         });
-        services.AddOpenIddict()
-
-                 // Register the OpenIddict core components.
-                .AddCore(options =>
-                 {
-                     // Configure OpenIddict to use the EF Core stores/models.
-                     options.UseEntityFrameworkCore()
-                            .UseDbContext<DbContext>();
-                 })
-
-                 // Register the OpenIddict server components.
-                .AddServer(options =>
-                 {
-                     options.AllowAuthorizationCodeFlow()
-                            .RequireProofKeyForCodeExchange();
-
-                     options.AllowClientCredentialsFlow();
-
-                     options.SetAuthorizationEndpointUris("/connect/authorize")
-                            .SetTokenEndpointUris("/connect/token");
-
-                     // Encryption and signing of tokens
-                     options.AddEphemeralEncryptionKey()
-                            .AddEphemeralSigningKey();
-
-                     // Disable encryption
-                     options.DisableAccessTokenEncryption();
-
-                     // Register scopes (permissions)
-                     options.RegisterScopes("api");
-
-                     // Register the ASP.NET Core host and configure the ASP.NET Core-specific options.
-                     options.UseAspNetCore()
-                            .EnableTokenEndpointPassthrough()
-                            .EnableAuthorizationEndpointPassthrough();
-                 });
+        services.AddProducer();
     }
 
     public static void Configure(WebApplication app)
@@ -78,5 +45,7 @@ public static class Startup
         {
             endpoints.MapDefaultControllerRoute();
         });
+
+        app.UseProducer();
     }
 }

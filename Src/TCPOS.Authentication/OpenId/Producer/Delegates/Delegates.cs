@@ -2,33 +2,31 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace AuthenticationServer.Controllers;
+namespace TCPOS.Authentication.OpenId.Producer.Delegates;
 
-public class AuthorizationController : Controller
+public class Delegates
 {
-    [HttpGet("~/connect/authorize")]
-    [HttpPost("~/connect/authorize")]
-    [IgnoreAntiforgeryToken]
-    public async Task<IActionResult> Authorize()
+    public static async Task Authorize(HttpContext httpContext)
     {
-        var request = HttpContext.GetOpenIddictServerRequest() ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
+        var request = httpContext.GetOpenIddictServerRequest() ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
 
         // Retrieve the user principal stored in the authentication cookie.
-        var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        var result = await httpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
         // If the user principal can't be extracted, redirect the user to the login page.
         if (!result.Succeeded)
         {
-            return Challenge(authenticationSchemes: CookieAuthenticationDefaults.AuthenticationScheme,
-                             properties: new AuthenticationProperties
-                             {
-                                 RedirectUri = Request.PathBase + Request.Path + QueryString.Create(Request.HasFormContentType ? Request.Form.ToList() : Request.Query.ToList())
-                             });
+            await httpContext.ChallengeAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+                                             new AuthenticationProperties
+                                             {
+                                                 RedirectUri = httpContext.Request.PathBase + httpContext.Request.Path + QueryString.Create(httpContext.Request.HasFormContentType ? httpContext.Request.Form.ToList() : httpContext.Request.Query.ToList())
+                                             });
+            return;
         }
 
         // Create a new claims principal
@@ -47,13 +45,12 @@ public class AuthorizationController : Controller
         claimsPrincipal.SetScopes(request.GetScopes());
 
         // Signing in with the OpenIddict authentiction scheme trigger OpenIddict to issue a code (which can be exchanged for an access token)
-        return SignIn(claimsPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        await httpContext.SignInAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme, claimsPrincipal);
     }
 
-    [HttpPost("~/connect/token")]
-    public async Task<IActionResult> Exchange()
+    public static async Task Exchange(HttpContext httpContext)
     {
-        var request = HttpContext.GetOpenIddictServerRequest() ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
+        var request = httpContext.GetOpenIddictServerRequest() ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
 
         ClaimsPrincipal claimsPrincipal;
 
@@ -77,7 +74,7 @@ public class AuthorizationController : Controller
         else if (request.IsAuthorizationCodeGrantType())
         {
             // Retrieve the claims principal stored in the authorization code
-            claimsPrincipal = (await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal;
+            claimsPrincipal = (await httpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal;
         }
         else
         {
@@ -85,6 +82,6 @@ public class AuthorizationController : Controller
         }
 
         // Returning a SignInResult will ask OpenIddict to issue the appropriate access/identity tokens.
-        return SignIn(claimsPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        await httpContext.SignInAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme, claimsPrincipal);
     }
 }

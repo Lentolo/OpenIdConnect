@@ -16,7 +16,7 @@ public static class Startup
         services.AddDbContext<DbContext>(options =>
         {
             // Configure the context to use sqlite.
-            options.UseSqlite($"Filename={System.IO.Path.GetDirectoryName(typeof(Startup).Assembly.Location)}\\db.sqlite");
+            options.UseSqlite($"Filename={Path.GetDirectoryName(typeof(Startup).Assembly.Location)}\\db.sqlite");
 
             // Register the entity sets needed by OpenIddict.
             // Note: use the generic overload if you need
@@ -24,11 +24,18 @@ public static class Startup
             options.UseOpenIddict();
         });
         services.AddControllersWithViews();
+
         services.AddAuthentication(options =>
-        {
-            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            //options.AddScheme(OpenIddictClientAspNetCoreDefaults.AuthenticationScheme;
-        });
+                 {
+                     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                 })
+                .AddCookie(options =>
+                 {
+                     options.LoginPath = "/login";
+                     options.LogoutPath = "/logout";
+                     options.ExpireTimeSpan = TimeSpan.FromMinutes(50);
+                     options.SlidingExpiration = false;
+                 });
 
         //services.AddDbContext<DbContext>(options =>
         //{
