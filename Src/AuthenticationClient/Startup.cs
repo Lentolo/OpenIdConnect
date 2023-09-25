@@ -112,5 +112,6 @@ public static class Startup
         });
 
         app.MapGet("/login", MinimalApis.Login);
+        app.MapGet("/callback/login/local", MinimalApis.LoginCallback);
     }
 }
