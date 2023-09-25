@@ -1,4 +1,6 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -6,7 +8,7 @@ namespace AuthenticationClient
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -16,8 +18,8 @@ namespace AuthenticationClient
             Startup.ConfigureServices(builder.Services);
             var app = builder.Build();
 
-            using var s=app.Services.CreateScope();
-            s.ServiceProvider.GetService<ApplicationDbContext>().Database.EnsureCreated();
+            using var scope=app.Services.CreateScope();
+            await scope.ServiceProvider.GetService<DbContext>()!.Database.EnsureCreatedAsync();
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
@@ -38,7 +40,7 @@ namespace AuthenticationClient
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
-            Startup.Configure(app, app.Environment);
+            Startup.Configure(app);
 
             app.Run();
         }

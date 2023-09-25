@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace AuthenticationServer;
 
@@ -17,8 +16,8 @@ public static class Startup
 
         services.AddDbContext<DbContext>(options =>
         {
-            // Configure the context to use an in-memory store.
-            options.UseInMemoryDatabase(nameof(DbContext));
+            // Configure the context to use sqlite.
+            options.UseSqlite($"Filename={Path.GetDirectoryName(typeof(Startup).Assembly.Location)}\\db.sqlite");
 
             // Register the entity sets needed by OpenIddict.
             options.UseOpenIddict();
@@ -37,7 +36,7 @@ public static class Startup
                 .AddServer(options =>
                  {
                      options.AllowAuthorizationCodeFlow()
-                        .RequireProofKeyForCodeExchange();
+                            .RequireProofKeyForCodeExchange();
 
                      options.AllowClientCredentialsFlow();
 
@@ -57,16 +56,14 @@ public static class Startup
                      // Register the ASP.NET Core host and configure the ASP.NET Core-specific options.
                      options.UseAspNetCore()
                             .EnableTokenEndpointPassthrough()
-                            .EnableAuthorizationEndpointPassthrough(); 
+                            .EnableAuthorizationEndpointPassthrough();
                  });
-
-        services.AddHostedService<TestData>();
     }
 
-    public static void Configure(WebApplication app, IWebHostEnvironment env)
+    public static void Configure(WebApplication app)
     {
         //app.MapGet("/", () => "Hello World!");
-        if (env.IsDevelopment())
+        if (app.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
         }

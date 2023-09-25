@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,10 +13,10 @@ public static class Startup
 {
     public static void ConfigureServices(IServiceCollection services)
     {
-        services.AddDbContext<ApplicationDbContext>(options =>
+        services.AddDbContext<DbContext>(options =>
         {
             // Configure the context to use sqlite.
-            options.UseSqlite($"Filename={System.IO.Path.GetDirectoryName(typeof(ApplicationDbContext).Assembly.Location)}\\db.sqlite");
+            options.UseSqlite($"Filename={System.IO.Path.GetDirectoryName(typeof(Startup).Assembly.Location)}\\db.sqlite");
 
             // Register the entity sets needed by OpenIddict.
             // Note: use the generic overload if you need
@@ -46,7 +45,7 @@ public static class Startup
                      // Configure OpenIddict to use the EF Core stores/models.
                      options
                         .UseEntityFrameworkCore()
-                        .UseDbContext<ApplicationDbContext>();
+                        .UseDbContext<DbContext>();
                  })
                 .AddClient(options =>
                  {
@@ -93,10 +92,10 @@ public static class Startup
                  });
     }
 
-    public static void Configure(WebApplication app, IWebHostEnvironment env)
+    public static void Configure(WebApplication app)
     {
         //app.MapGet("/", () => "Hello World!");
-        if (env.IsDevelopment())
+        if (app.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
         }
