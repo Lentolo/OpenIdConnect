@@ -16,8 +16,10 @@ public static class ConfigurationExtensions
         Safety.Check(configuration.CallBackUri?.IsRelativeWithAbsolutePath() ?? false, () => new ArgumentException($"{nameof(configuration.CallBackUri)} must be relative with absolute path"));
         Safety.Check(configuration.LoginUri?.IsRelativeWithAbsolutePath() ?? false, () => new ArgumentException($"{nameof(configuration.LoginUri)} must be relative with absolute path"));
 
-        Safety.Check(!string.IsNullOrEmpty(configuration.ClientId), () => new ArgumentException($"{nameof(configuration.ClientId)} must be not empty"));
-        Safety.Check(!string.IsNullOrEmpty(configuration.ClientSecret), () => new ArgumentException($"{nameof(configuration.ClientSecret)} must be not empty"));
+        Safety.Check(!string.IsNullOrEmpty(configuration.ClientId), () => new ArgumentException($"{nameof(configuration.ClientId)} must not be empty"));
+        Safety.Check(!string.IsNullOrEmpty(configuration.ClientSecret), () => new ArgumentException($"{nameof(configuration.ClientSecret)} must not be empty"));
+
+        Safety.Check(configuration.Scopes.Any() && configuration.Scopes.All(s => !string.IsNullOrEmpty(s)), () => new ArgumentException($"{nameof(configuration.Scopes)} must not be empty"));
     }
 
     public static void AddOpenIdConsumer(this IServiceCollection services, Action<Configuration.Configuration> action)
@@ -66,10 +68,6 @@ public static class ConfigurationExtensions
 
                          ClientId = configuration.ClientId,
                          ClientSecret = configuration.ClientSecret,
-                         Scopes =
-                         {
-                             "api"
-                         },
 
                          // Note: to mitigate mix-up attacks, it's recommended to use a unique redirection endpoint
                          // URI per provider, unless all the registered providers support returning a special "iss"
@@ -78,6 +76,7 @@ public static class ConfigurationExtensions
                          RedirectUri = configuration.CallBackUri
                          //PostLogoutRedirectUri = new Uri("callback/logout/local", UriKind.Relative)
                      };
+                     registration.Scopes.UnionWith(configuration.Scopes);
                      options.AddRegistration(registration);
                  });
     }
@@ -85,7 +84,7 @@ public static class ConfigurationExtensions
     public static void UseOpenIdConsumer(this WebApplication app)
     {
         var configuration = app.Services.GetRequiredService<Configuration.Configuration>();
-        app.MapGet(configuration.LoginUri!.PathAndQuery, Delegates.Delegates.Login);
-        app.MapGet(configuration.CallBackUri!.PathAndQuery, Delegates.Delegates.LoginCallback);
+        app.MapGet(configuration.LoginUri!.MakeAbsolute(new Uri("http://fake.host")).PathAndQuery, Delegates.Delegates.Login);
+        app.MapGet(configuration.CallBackUri!.MakeAbsolute(new Uri("http://fake.host")).PathAndQuery, Delegates.Delegates.LoginCallback);
     }
 }

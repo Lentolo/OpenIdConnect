@@ -28,11 +28,10 @@ public sealed class Application : IEquatable<Application>
         get;
     } = new();
 
-    public string Scope
+    public HashSet<string> Scopes
     {
         get;
-        set;
-    }
+    } = new HashSet<string>();
 
     public bool Equals(Application? other)
     {

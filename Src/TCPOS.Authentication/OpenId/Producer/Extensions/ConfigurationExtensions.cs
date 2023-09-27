@@ -16,9 +16,7 @@ public static class ConfigurationExtensions
     {
         var configuration = new Configuration.Configuration();
         action(configuration);
-
         CheckConfiguration(configuration);
-
         services.AddSingleton(configuration);
 
         services.AddOpenIddict()
@@ -55,7 +53,7 @@ public static class ConfigurationExtensions
                      options.DisableAccessTokenEncryption();
 
                      // Register scopes (permissions)
-                     options.RegisterScopes("api");
+                     options.RegisterScopes(configuration.Applications.SelectMany(a => a.Scopes).Distinct().ToArray());
 
                      // Register the ASP.NET Core host and configure the ASP.NET Core-specific options.
                      options.UseAspNetCore()
@@ -77,7 +75,8 @@ public static class ConfigurationExtensions
             Safety.Check(!string.IsNullOrEmpty(application.ClientSecret), () => new ArgumentNullException(nameof(application.ClientSecret)));
             Safety.Check(!string.IsNullOrEmpty(application.ClientId), () => new ArgumentNullException(nameof(application.ClientId)));
             Safety.Check(!string.IsNullOrEmpty(application.DisplayName), () => new ArgumentNullException(nameof(application.ClientId)));
-            Safety.Check(application.RedirectUris.All(u => u.IsAbsoluteUri), () => new ArgumentException($"{nameof(application.RedirectUris)} contains one or more relative uris"));
+            Safety.Check(application.RedirectUris.Any() && application.RedirectUris.All(u => u.IsAbsoluteUri), () => new ArgumentException($"{nameof(application.RedirectUris)} contains one or more relative uris"));
+            Safety.Check(application.Scopes.Any() && application.Scopes.All(u => !string.IsNullOrEmpty(u)), () => new ArgumentException($"{nameof(application.Scopes)} contains one or more invalid scopes"));
         }
     }
 
@@ -87,13 +86,13 @@ public static class ConfigurationExtensions
 
         app.ChainIf(configuration.AllowAuthorizationCodeFlow, a =>
         {
-            a.MapPost(configuration.AuthorizationEndpointUri.MakeAbsolute(new Uri("http://fake.host")).PathAndQuery, Delegates.Delegates.Authorize);
-            a.MapGet(configuration.AuthorizationEndpointUri.MakeAbsolute(new Uri("http://fake.host")).PathAndQuery, Delegates.Delegates.Authorize);
+            a.MapPost(configuration.AuthorizationEndpointUri!.MakeAbsolute(new Uri("http://fake.host")).PathAndQuery, Delegates.Delegates.Authorize);
+            a.MapGet(configuration.AuthorizationEndpointUri!.MakeAbsolute(new Uri("http://fake.host")).PathAndQuery, Delegates.Delegates.Authorize);
         });
 
         app.ChainIf(configuration.AllowClientCredentialsFlow || configuration.AllowAuthorizationCodeFlow, a =>
         {
-            app.MapPost(configuration.TokenEndpointUri.MakeAbsolute(new Uri("http://fake.host")).PathAndQuery, Delegates.Delegates.Exchange);
+            app.MapPost(configuration.TokenEndpointUri!.MakeAbsolute(new Uri("http://fake.host")).PathAndQuery, Delegates.Delegates.Exchange);
         });
 
         using var scope = app.Services.CreateScope();
@@ -101,33 +100,43 @@ public static class ConfigurationExtensions
 
         foreach (var application in configuration.Applications)
         {
-            if (await manager.FindByClientIdAsync(application.ClientId) is null)
+            var findByClientIdAsync = await manager.FindByClientIdAsync(application.ClientId);
+
+            if (findByClientIdAsync is not null)
             {
-                var applicationDescriptor = new OpenIddictApplicationDescriptor
-                {
-                    ClientId = application.ClientId,
-                    ClientSecret = application.ClientSecret,
-                    DisplayName = application.DisplayName
-                };
-                applicationDescriptor.RedirectUris.Union(application.RedirectUris);
-
-                if (configuration.AllowAuthorizationCodeFlow)
-                {
-                    applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Code);
-                    applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Authorization);
-                    applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
-                    applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
-                }
-
-                if (configuration.AllowClientCredentialsFlow)
-                {
-                    applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Token);
-                    applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
-                    applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.ClientCredentials);
-                }
-
-                await manager.CreateAsync(applicationDescriptor);
+                await manager.DeleteAsync(findByClientIdAsync);
             }
+
+            var applicationDescriptor = new OpenIddictApplicationDescriptor
+            {
+                ClientId = application.ClientId,
+                ClientSecret = application.ClientSecret,
+                DisplayName = application.DisplayName
+            };
+            applicationDescriptor.RedirectUris.UnionWith(application.RedirectUris);
+
+            if (configuration.AllowAuthorizationCodeFlow)
+            {
+                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Code);
+                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Authorization);
+                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
+                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
+            }
+
+            if (configuration.AllowClientCredentialsFlow)
+            {
+                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Token);
+                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
+                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.ClientCredentials);
+            }
+
+            foreach (var s in application.Scopes)
+            {
+                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Prefixes.Scope + s);
+            }
+
+            await manager.CreateAsync(applicationDescriptor);
+            findByClientIdAsync = await manager.FindByClientIdAsync(application.ClientId);
         }
 
         return app;

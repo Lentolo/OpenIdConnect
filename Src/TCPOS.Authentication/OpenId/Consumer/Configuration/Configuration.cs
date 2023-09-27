@@ -29,9 +29,13 @@ public class Configuration
         set;
     }
 
-    public Uri?  LoginUri
+    public Uri? LoginUri
     {
         get;
         set;
     }
+    public HashSet<string> Scopes
+    {
+        get;
+    } = new HashSet<string>();
 }

@@ -90,15 +90,9 @@ public static class Delegates
         await ctx.SignInAsync(new ClaimsPrincipal(identity), properties);
     }
 
-    public static async Task Login(HttpContext ctx, [FromQuery] string? returnUrl)
+    public static async Task Login(HttpContext ctx)
     {
-        var properties = new AuthenticationProperties
-        {
-            // Only allow local return URLs to prevent open redirect attacks.
-            RedirectUri = !string.IsNullOrEmpty(returnUrl) && Uri.IsWellFormedUriString(returnUrl, UriKind.Relative) && (returnUrl.StartsWith("/") || returnUrl.StartsWith("~/")) ? returnUrl : "/"
-        };
-
         // Ask the OpenIddict client middleware to redirect the user agent to the identity provider.
-        await ctx.ChallengeAsync(OpenIddictClientAspNetCoreDefaults.AuthenticationScheme, properties);
+        await ctx.ChallengeAsync(OpenIddictClientAspNetCoreDefaults.AuthenticationScheme);
     }
 }
