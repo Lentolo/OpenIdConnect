@@ -23,7 +23,7 @@ namespace AuthenticationClient
             builder.Services.AddDbContext<DbContext>(options =>
             {
                 // Configure the context to use sqlite.
-                options.UseSqlite($"Filename={Path.GetDirectoryName(typeof(Startup).Assembly.Location)}\\db.sqlite");
+                options.UseSqlite($"Filename={Path.GetDirectoryName(typeof(Program).Assembly.Location)}\\db.sqlite");
 
                 // Register the entity sets needed by OpenIddict.
                 // Note: use the generic overload if you need
