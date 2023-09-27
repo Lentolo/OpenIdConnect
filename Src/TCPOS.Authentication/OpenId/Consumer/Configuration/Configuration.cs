@@ -5,7 +5,7 @@ public class Configuration
     internal Configuration()
     {}
 
-    public string Issuer
+    public Uri? Issuer
     {
         get;
         set;
@@ -23,13 +23,13 @@ public class Configuration
         set;
     }
 
-    public string CallBackUri
+    public Uri?  CallBackUri
     {
         get;
         set;
     }
 
-    public string LoginUri
+    public Uri?  LoginUri
     {
         get;
         set;

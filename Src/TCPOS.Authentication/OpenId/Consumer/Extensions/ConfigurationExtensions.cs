@@ -2,16 +2,29 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Client;
+using TCPOS.Authentication.Utils;
+using TCPOS.Authentication.Utils.Extensions;
 
 namespace TCPOS.Authentication.OpenId.Consumer.Extensions;
 
 public static class ConfigurationExtensions
 {
+    private static void CheckConfiguration(Configuration.Configuration configuration)
+    {
+        Safety.Check(configuration.Issuer?.IsAbsoluteUri ?? false, () => new ArgumentException($"{nameof(configuration.CallBackUri)} must be absolute"));
+
+        Safety.Check(configuration.CallBackUri?.IsRelativeWithAbsolutePath() ?? false, () => new ArgumentException($"{nameof(configuration.CallBackUri)} must be relative with absolute path"));
+        Safety.Check(configuration.LoginUri?.IsRelativeWithAbsolutePath() ?? false, () => new ArgumentException($"{nameof(configuration.LoginUri)} must be relative with absolute path"));
+
+        Safety.Check(!string.IsNullOrEmpty(configuration.ClientId), () => new ArgumentException($"{nameof(configuration.ClientId)} must be not empty"));
+        Safety.Check(!string.IsNullOrEmpty(configuration.ClientSecret), () => new ArgumentException($"{nameof(configuration.ClientSecret)} must be not empty"));
+    }
+
     public static void AddOpenIdConsumer(this IServiceCollection services, Action<Configuration.Configuration> action)
     {
         var configuration = new Configuration.Configuration();
         action(configuration);
-        //check configuration
+        CheckConfiguration(configuration);
         services.AddSingleton(configuration);
 
         services.AddOpenIddict()
@@ -49,7 +62,7 @@ public static class ConfigurationExtensions
                      // Add a client registration matching the client application definition in the server project.
                      var registration = new OpenIddictClientRegistration
                      {
-                         Issuer = new Uri(configuration.Issuer, UriKind.Absolute),
+                         Issuer = configuration.Issuer,
 
                          ClientId = configuration.ClientId,
                          ClientSecret = configuration.ClientSecret,
@@ -62,7 +75,7 @@ public static class ConfigurationExtensions
                          // URI per provider, unless all the registered providers support returning a special "iss"
                          // parameter containing their URL as part of authorization responses. For more information,
                          // see https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics#section-4.4.
-                         RedirectUri = new Uri(configuration.CallBackUri, UriKind.Relative)
+                         RedirectUri = configuration.CallBackUri
                          //PostLogoutRedirectUri = new Uri("callback/logout/local", UriKind.Relative)
                      };
                      options.AddRegistration(registration);
@@ -72,7 +85,7 @@ public static class ConfigurationExtensions
     public static void UseOpenIdConsumer(this WebApplication app)
     {
         var configuration = app.Services.GetRequiredService<Configuration.Configuration>();
-        app.MapGet(configuration.LoginUri, Delegates.Delegates.Login);
-        app.MapGet(configuration.CallBackUri, Delegates.Delegates.LoginCallback);
+        app.MapGet(configuration.LoginUri!.PathAndQuery, Delegates.Delegates.Login);
+        app.MapGet(configuration.CallBackUri!.PathAndQuery, Delegates.Delegates.LoginCallback);
     }
 }

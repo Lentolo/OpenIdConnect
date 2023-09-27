@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthenticationClient", "Aut
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TCPOS.Authentication", "TCPOS.Authentication\TCPOS.Authentication.csproj", "{0DBEE5A6-F787-49FE-94C3-3CC47DDD176A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TCPOS.Authentication.Tests", "TCPOS.Authentication.Tests\TCPOS.Authentication.Tests.csproj", "{ED1BFAA1-19E0-49F6-8E2D-24EEDFEB67A3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{0DBEE5A6-F787-49FE-94C3-3CC47DDD176A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0DBEE5A6-F787-49FE-94C3-3CC47DDD176A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0DBEE5A6-F787-49FE-94C3-3CC47DDD176A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED1BFAA1-19E0-49F6-8E2D-24EEDFEB67A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED1BFAA1-19E0-49F6-8E2D-24EEDFEB67A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED1BFAA1-19E0-49F6-8E2D-24EEDFEB67A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED1BFAA1-19E0-49F6-8E2D-24EEDFEB67A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
