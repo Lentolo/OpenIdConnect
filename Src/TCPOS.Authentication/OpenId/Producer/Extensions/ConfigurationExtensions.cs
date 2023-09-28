@@ -73,7 +73,7 @@ public static class ConfigurationExtensions
         }
 
         using var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
-        return store.Certificates.FirstOrDefault(c => !string.IsNullOrEmpty(certificate?.Thumbprint) && string.Compare(c.Thumbprint, certificate?.Thumbprint, StringComparison.OrdinalIgnoreCase) == 0                                                      || !string.IsNullOrEmpty(certificate?.Subject) && string.Compare(c.Subject, certificate?.Subject, StringComparison.OrdinalIgnoreCase) == 0                                                      || !string.IsNullOrEmpty(certificate?.FriendlyName) && string.Compare(c.FriendlyName, certificate?.FriendlyName, StringComparison.OrdinalIgnoreCase) == 0);
+        return store.Certificates.FirstOrDefault(c => !string.IsNullOrEmpty(certificate?.Thumbprint) && string.Compare(c.Thumbprint, certificate?.Thumbprint, StringComparison.OrdinalIgnoreCase) == 0 || !string.IsNullOrEmpty(certificate?.Subject) && string.Compare(c.Subject, certificate?.Subject, StringComparison.OrdinalIgnoreCase) == 0 || !string.IsNullOrEmpty(certificate?.FriendlyName) && string.Compare(c.FriendlyName, certificate?.FriendlyName, StringComparison.OrdinalIgnoreCase) == 0);
     }
 
     private static void CheckConfiguration(Configuration.Configuration configuration)
