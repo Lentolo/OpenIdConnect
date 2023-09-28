@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using TCPOS.Authentication.OpenId.Producer.Configuration;
 using TCPOS.Authentication.Utils.Extensions;
 
-namespace TCPOS.Authentication.OpenId.Producer.Extensions;
+namespace TCPOS.Authentication.OpenId.Common;
 
 internal static class ConfigureOpenIdDbContext
 {

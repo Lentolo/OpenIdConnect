@@ -1,6 +1,6 @@
 ﻿namespace TCPOS.Authentication.OpenId.Producer.Configuration;
 
-public class Certificate
+public sealed class Certificate
 {
     internal Certificate()
     { }

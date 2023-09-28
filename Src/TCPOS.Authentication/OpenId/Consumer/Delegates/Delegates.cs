@@ -8,7 +8,7 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TCPOS.Authentication.OpenId.Consumer.Delegates;
 
-public static class Delegates
+internal static class Delegates
 {
     public static async Task LoginCallback(HttpContext ctx)
     {

@@ -1,6 +1,6 @@
 ﻿namespace TCPOS.Authentication.Utils.Extensions;
 
-public static class UriExtensions
+internal static class UriExtensions
 {
     public static Uri MakeAbsolute(this Uri uri1, Uri uri2)
     {

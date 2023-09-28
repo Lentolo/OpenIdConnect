@@ -1,7 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Runtime.CompilerServices;
 using TCPOS.Authentication.Utils;
 
-namespace TCPOS.Authentication.OpenId.Producer.Configuration;
+[assembly: InternalsVisibleTo("TCPOS.Authentication.Tests")]
+
+namespace TCPOS.Authentication.OpenId.Common;
 
 public abstract class ConfigurationBase
 {

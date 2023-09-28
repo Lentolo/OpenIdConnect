@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace TCPOS.Authentication.Utils;
 
-public static class Safety
+internal static class Safety
 {
     public static void Check([DoesNotReturnIf(false)] bool condition, Func<Exception> exceptionFactory)
     {

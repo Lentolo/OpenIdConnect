@@ -9,7 +9,7 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TCPOS.Authentication.OpenId.Producer.Delegates;
 
-public class Delegates
+internal class Delegates
 {
     public static async Task Authorize(HttpContext httpContext)
     {
