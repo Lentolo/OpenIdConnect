@@ -26,10 +26,6 @@ public static class Startup
             endpoints.MapDefaultControllerRoute();
         });
 
-        using var scope = app.Services.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<DbContext>();
-        await context.Database.EnsureCreatedAsync();
-
         await app.UseOpenIdProducer();
     }
 
@@ -66,6 +62,10 @@ public static class Startup
                 ClientSecret = "test-test",
                 DisplayName = "Test"
             };
+
+            //c.EncryptionCertificate.Subject = "CN=odata-enc";
+            c.SigningCertificate.Subject = "CN=odata-sign";
+
             application.RedirectUris.Add(new Uri("https://localhost:7290/auth/login/callback"));
             c.Applications.Add(application);
         });

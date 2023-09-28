@@ -1,10 +1,9 @@
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
+using TCPOS.Authentication.OpenId.Common;
 using TCPOS.Authentication.OpenId.Producer.Configuration;
-using TCPOS.Authentication.Utils;
 using TCPOS.Authentication.Utils.Extensions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -19,20 +18,18 @@ public static class ConfigurationExtensions
     {
         var configuration = new Configuration.Configuration();
         action(configuration);
-        CheckConfiguration(configuration);
+        configuration.EnsureValid();
         services.AddSingleton(configuration);
 
+        services.ConfigureServicesOpenIdDbContext(configuration.OpenIdDbContext);
+
         services.AddOpenIddict()
-
-                 // Register the OpenIddict core components.
+                // Register the OpenIddict core components.
                 .AddCore(options =>
-                 {
-                     // Configure OpenIddict to use the EF Core stores/models.
-                     options.UseEntityFrameworkCore()
-                            .UseDbContext<DbContext>();
-                 })
-
-                 // Register the OpenIddict server components.
+                {
+                    options.ConfigureOpenIdCoreOpenIdDbContext(configuration.OpenIdDbContext);
+                })
+                // Register the OpenIddict server components.
                 .AddServer(options =>
                  {
                      options
@@ -49,11 +46,20 @@ public static class ConfigurationExtensions
                          });
 
                      var encryptionCertificate = GetCertificate(configuration?.EncryptionCertificate);
-                     var signingCertificate = GetCertificate(configuration?.SigningCertificate);
 
-                     options
-                        .ChainIf(encryptionCertificate != null, o => o.AddEncryptionCertificate(encryptionCertificate))
-                        .ChainIf(signingCertificate != null, o => o.AddSigningCertificate(signingCertificate));
+                     if (encryptionCertificate != null)
+                     {
+                         options.AddEncryptionCertificate(encryptionCertificate);
+                     }
+                     else
+                     {
+                         options.AddEphemeralEncryptionKey();
+                     }
+
+                     options.ChainIf(configuration?.DisableAccessTokenEncryption ?? false, o => o.DisableAccessTokenEncryption());
+
+                     var signingCertificate = GetCertificate(configuration?.SigningCertificate);
+                     options.ChainIf(signingCertificate != null, o => o.AddSigningCertificate(signingCertificate!));
 
                      // Register scopes (permissions)
                      options.RegisterScopes(configuration.Applications.SelectMany(a => a.Scopes).Distinct().ToArray());
@@ -69,34 +75,23 @@ public static class ConfigurationExtensions
     {
         if (File.Exists(certificate?.PfxPath))
         {
-            return new X509Certificate2(certificate?.PfxPath, certificate?.Password);
+            return new X509Certificate2(certificate.PfxPath!, certificate?.Password);
         }
 
         using var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
-        return store.Certificates.FirstOrDefault(c => !string.IsNullOrEmpty(certificate?.Thumbprint) && string.Compare(c.Thumbprint, certificate?.Thumbprint, StringComparison.OrdinalIgnoreCase) == 0 || !string.IsNullOrEmpty(certificate?.Subject) && string.Compare(c.Subject, certificate?.Subject, StringComparison.OrdinalIgnoreCase) == 0 || !string.IsNullOrEmpty(certificate?.FriendlyName) && string.Compare(c.FriendlyName, certificate?.FriendlyName, StringComparison.OrdinalIgnoreCase) == 0);
-    }
-
-    private static void CheckConfiguration(Configuration.Configuration configuration)
-    {
-        Safety.Check(configuration.AuthorizationEndpointUri != null, () => new ArgumentNullException(nameof(configuration.AuthorizationEndpointUri)));
-        Safety.Check(configuration.AuthorizationEndpointUri.IsRelativeWithAbsolutePath(), () => new ArgumentException($"{nameof(configuration.AuthorizationEndpointUri)} must have an absolute path"));
-        Safety.Check(configuration.TokenEndpointUri != null, () => new ArgumentNullException(nameof(configuration.TokenEndpointUri)));
-        Safety.Check(configuration.TokenEndpointUri.IsRelativeWithAbsolutePath(), () => new ArgumentException($"{nameof(configuration.TokenEndpointUri)} must have an absolute path"));
-        Safety.Check(configuration.Applications.Any(), () => new ArgumentException($"{nameof(configuration.Applications)} must be non empty"));
-
-        foreach (var application in configuration.Applications)
+        store.Open(OpenFlags.ReadOnly);
+        return store.Certificates.FirstOrDefault(c =>
         {
-            Safety.Check(!string.IsNullOrEmpty(application.ClientSecret), () => new ArgumentNullException(nameof(application.ClientSecret)));
-            Safety.Check(!string.IsNullOrEmpty(application.ClientId), () => new ArgumentNullException(nameof(application.ClientId)));
-            Safety.Check(!string.IsNullOrEmpty(application.DisplayName), () => new ArgumentNullException(nameof(application.ClientId)));
-            Safety.Check(application.RedirectUris.Any() && application.RedirectUris.All(u => u.IsAbsoluteUri), () => new ArgumentException($"{nameof(application.RedirectUris)} contains one or more relative uris"));
-            Safety.Check(application.Scopes.Any() && application.Scopes.All(u => !string.IsNullOrEmpty(u)), () => new ArgumentException($"{nameof(application.Scopes)} contains one or more invalid scopes"));
-        }
+            var aaa = c.HasPrivateKey;
+            return !string.IsNullOrEmpty(certificate?.Thumbprint) && string.Compare(c.Thumbprint, certificate.Thumbprint, StringComparison.OrdinalIgnoreCase) == 0 || !string.IsNullOrEmpty(certificate?.Subject) && string.Compare(c.Subject, certificate.Subject, StringComparison.OrdinalIgnoreCase) == 0 || !string.IsNullOrEmpty(certificate?.FriendlyName) && string.Compare(c.FriendlyName, certificate.FriendlyName, StringComparison.OrdinalIgnoreCase) == 0;
+        });
     }
 
     public static async Task<WebApplication> UseOpenIdProducer(this WebApplication app)
     {
         var configuration = app.Services.GetRequiredService<Configuration.Configuration>();
+
+        app.ConfigureAppOpenIdDbContext(configuration.OpenIdDbContext);
 
         app.ChainIf(configuration.AllowAuthorizationCodeFlow, a =>
         {
@@ -155,7 +150,6 @@ public static class ConfigurationExtensions
             }
 
             await manager.CreateAsync(applicationDescriptor);
-            findByClientIdAsync = await manager.FindByClientIdAsync(application.ClientId);
         }
 
         return app;

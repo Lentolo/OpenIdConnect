@@ -1,9 +1,14 @@
-﻿namespace TCPOS.Authentication.OpenId.Consumer.Configuration;
+﻿using TCPOS.Authentication.OpenId.Common;
+using TCPOS.Authentication.OpenId.Producer.Configuration;
+using TCPOS.Authentication.Utils;
+using TCPOS.Authentication.Utils.Extensions;
 
-public class Configuration
+namespace TCPOS.Authentication.OpenId.Consumer.Configuration;
+
+public class Configuration : ConfigurationBase
 {
     internal Configuration()
-    {}
+    { }
 
     public Uri? Issuer
     {
@@ -23,7 +28,7 @@ public class Configuration
         set;
     }
 
-    public Uri?  CallBackUri
+    public Uri? CallBackUri
     {
         get;
         set;
@@ -34,8 +39,22 @@ public class Configuration
         get;
         set;
     }
+
     public HashSet<string> Scopes
     {
         get;
-    } = new HashSet<string>();
+    } = new();
+
+    internal override void EnsureValid()
+    {
+        base.EnsureValid();
+        Safety.Check(Issuer?.IsAbsoluteUri ?? false, () => new ArgumentException($"{nameof(CallBackUri)} must be absolute"));
+
+        Safety.Check(CallBackUri?.IsRelativeWithAbsolutePath() ?? false, () => new ArgumentException($"{nameof(CallBackUri)} must be relative with absolute path"));
+        Safety.Check(LoginUri?.IsRelativeWithAbsolutePath() ?? false, () => new ArgumentException($"{nameof(LoginUri)} must be relative with absolute path"));
+
+        Safety.Check(!string.IsNullOrEmpty(ClientId), () => new ArgumentException($"{nameof(ClientId)} must not be empty"));
+        Safety.Check(!string.IsNullOrEmpty(ClientSecret), () => new ArgumentException($"{nameof(ClientSecret)} must not be empty"));
+        Safety.Check(Scopes.Any() && Scopes.All(s => !string.IsNullOrEmpty(s)), () => new ArgumentException($"{nameof(Scopes)} must not be empty"));
+    }
 }

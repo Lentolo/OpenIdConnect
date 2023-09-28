@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Client;
+using TCPOS.Authentication.OpenId.Common;
+using TCPOS.Authentication.OpenId.Producer.Extensions;
 using TCPOS.Authentication.Utils;
 using TCPOS.Authentication.Utils.Extensions;
 
@@ -9,34 +11,18 @@ namespace TCPOS.Authentication.OpenId.Consumer.Extensions;
 
 public static class ConfigurationExtensions
 {
-    private static void CheckConfiguration(Configuration.Configuration configuration)
-    {
-        Safety.Check(configuration.Issuer?.IsAbsoluteUri ?? false, () => new ArgumentException($"{nameof(configuration.CallBackUri)} must be absolute"));
-
-        Safety.Check(configuration.CallBackUri?.IsRelativeWithAbsolutePath() ?? false, () => new ArgumentException($"{nameof(configuration.CallBackUri)} must be relative with absolute path"));
-        Safety.Check(configuration.LoginUri?.IsRelativeWithAbsolutePath() ?? false, () => new ArgumentException($"{nameof(configuration.LoginUri)} must be relative with absolute path"));
-
-        Safety.Check(!string.IsNullOrEmpty(configuration.ClientId), () => new ArgumentException($"{nameof(configuration.ClientId)} must not be empty"));
-        Safety.Check(!string.IsNullOrEmpty(configuration.ClientSecret), () => new ArgumentException($"{nameof(configuration.ClientSecret)} must not be empty"));
-
-        Safety.Check(configuration.Scopes.Any() && configuration.Scopes.All(s => !string.IsNullOrEmpty(s)), () => new ArgumentException($"{nameof(configuration.Scopes)} must not be empty"));
-    }
-
     public static void AddOpenIdConsumer(this IServiceCollection services, Action<Configuration.Configuration> action)
     {
         var configuration = new Configuration.Configuration();
         action(configuration);
-        CheckConfiguration(configuration);
+        configuration.EnsureValid();
         services.AddSingleton(configuration);
 
         services.AddOpenIddict()
                  // Register the OpenIddict core components.
                 .AddCore(options =>
                  {
-                     // Configure OpenIddict to use the EF Core stores/models.
-                     options
-                        .UseEntityFrameworkCore()
-                        .UseDbContext<DbContext>();
+                     options.ConfigureOpenIdCoreOpenIdDbContext(configuration.OpenIdDbContext);
                  })
                 .AddClient(options =>
                  {
