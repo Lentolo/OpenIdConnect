@@ -1,7 +1,9 @@
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
+using TCPOS.Authentication.OpenId.Producer.Configuration;
 using TCPOS.Authentication.Utils;
 using TCPOS.Authentication.Utils.Extensions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -46,21 +48,12 @@ public static class ConfigurationExtensions
                               .SetTokenEndpointUris(configuration.TokenEndpointUri);
                          });
 
-                     // Encryption and signing of tokens
-                     options.AddEphemeralEncryptionKey()
-                            .AddEphemeralSigningKey();
-                     //options.AddSigningCertificate()
+                     var encryptionCertificate = GetCertificate(configuration?.EncryptionCertificate);
+                     var signingCertificate = GetCertificate(configuration?.SigningCertificate);
 
-                     if (File.Exists(configuration?.EncryptionCertificate?.PfxPath))
-                     {
-
-                     }
-                     else 
-                     { 
-                     }
-
-                     // Disable encryption
-                     options.DisableAccessTokenEncryption();
+                     options
+                        .ChainIf(encryptionCertificate != null, o => o.AddEncryptionCertificate(encryptionCertificate))
+                        .ChainIf(signingCertificate != null, o => o.AddSigningCertificate(signingCertificate));
 
                      // Register scopes (permissions)
                      options.RegisterScopes(configuration.Applications.SelectMany(a => a.Scopes).Distinct().ToArray());
@@ -70,6 +63,17 @@ public static class ConfigurationExtensions
                             .EnableTokenEndpointPassthrough()
                             .EnableAuthorizationEndpointPassthrough();
                  });
+    }
+
+    private static X509Certificate2? GetCertificate(Certificate? certificate)
+    {
+        if (File.Exists(certificate?.PfxPath))
+        {
+            return new X509Certificate2(certificate?.PfxPath, certificate?.Password);
+        }
+
+        using var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+        return store.Certificates.FirstOrDefault(c => !string.IsNullOrEmpty(certificate?.Thumbprint) && string.Compare(c.Thumbprint, certificate?.Thumbprint, StringComparison.OrdinalIgnoreCase) == 0                                                      || !string.IsNullOrEmpty(certificate?.Subject) && string.Compare(c.Subject, certificate?.Subject, StringComparison.OrdinalIgnoreCase) == 0                                                      || !string.IsNullOrEmpty(certificate?.FriendlyName) && string.Compare(c.FriendlyName, certificate?.FriendlyName, StringComparison.OrdinalIgnoreCase) == 0);
     }
 
     private static void CheckConfiguration(Configuration.Configuration configuration)
