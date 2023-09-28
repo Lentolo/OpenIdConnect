@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
 using TCPOS.Authentication.Utils;
 using TCPOS.Authentication.Utils.Extensions;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TCPOS.Authentication.OpenId.Producer.Extensions;
 
@@ -48,6 +49,15 @@ public static class ConfigurationExtensions
                      // Encryption and signing of tokens
                      options.AddEphemeralEncryptionKey()
                             .AddEphemeralSigningKey();
+                     //options.AddSigningCertificate()
+
+                     if (File.Exists(configuration?.EncryptionCertificate?.PfxPath))
+                     {
+
+                     }
+                     else 
+                     { 
+                     }
 
                      // Disable encryption
                      options.DisableAccessTokenEncryption();
@@ -117,22 +127,27 @@ public static class ConfigurationExtensions
 
             if (configuration.AllowAuthorizationCodeFlow)
             {
-                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Code);
-                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Authorization);
-                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
-                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
+                applicationDescriptor.Permissions.Add(Permissions.ResponseTypes.Code);
+                applicationDescriptor.Permissions.Add(Permissions.Endpoints.Authorization);
+                applicationDescriptor.Permissions.Add(Permissions.Endpoints.Token);
+                applicationDescriptor.Permissions.Add(Permissions.GrantTypes.AuthorizationCode);
             }
 
             if (configuration.AllowClientCredentialsFlow)
             {
-                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Token);
-                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
-                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.ClientCredentials);
+                applicationDescriptor.Permissions.Add(Permissions.ResponseTypes.Token);
+                applicationDescriptor.Permissions.Add(Permissions.Endpoints.Token);
+                applicationDescriptor.Permissions.Add(Permissions.GrantTypes.ClientCredentials);
             }
 
             foreach (var s in application.Scopes)
             {
-                applicationDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Prefixes.Scope + s);
+                applicationDescriptor.Permissions.Add(Permissions.Prefixes.Scope + s);
+            }
+
+            if (configuration.RequirePKCE)
+            {
+                applicationDescriptor.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange);
             }
 
             await manager.CreateAsync(applicationDescriptor);

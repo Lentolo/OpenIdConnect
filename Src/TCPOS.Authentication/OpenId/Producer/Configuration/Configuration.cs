@@ -27,13 +27,22 @@ public sealed class Configuration
     {
         get;
         set;
-    } 
+    }
 
     public Uri? TokenEndpointUri
     {
         get;
         set;
-    } 
+    }
+
+    public Certificate SigningCertificate
+    {
+        get;
+    } = new();
+    public Certificate EncryptionCertificate
+    {
+        get;
+    } = new();
 
     public HashSet<Application> Applications
     {
