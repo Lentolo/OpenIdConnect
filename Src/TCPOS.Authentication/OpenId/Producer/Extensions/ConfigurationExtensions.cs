@@ -24,12 +24,12 @@ public static class ConfigurationExtensions
         services.ConfigureServicesOpenIdDbContext(configuration.OpenIdDbContext);
 
         services.AddOpenIddict()
-                // Register the OpenIddict core components.
+                 // Register the OpenIddict core components.
                 .AddCore(options =>
-                {
-                    options.ConfigureOpenIdCoreOpenIdDbContext(configuration.OpenIdDbContext);
-                })
-                // Register the OpenIddict server components.
+                 {
+                     options.ConfigureOpenIdCoreOpenIdDbContext(configuration.OpenIdDbContext);
+                 })
+                 // Register the OpenIddict server components.
                 .AddServer(options =>
                  {
                      options
@@ -59,7 +59,15 @@ public static class ConfigurationExtensions
                      options.ChainIf(configuration?.DisableAccessTokenEncryption ?? false, o => o.DisableAccessTokenEncryption());
 
                      var signingCertificate = GetCertificate(configuration?.SigningCertificate);
-                     options.ChainIf(signingCertificate != null, o => o.AddSigningCertificate(signingCertificate!));
+
+                     if (signingCertificate != null)
+                     {
+                         options.AddSigningCertificate(signingCertificate!);
+                     }
+                     else
+                     {
+                         options.AddEphemeralSigningKey();
+                     }
 
                      // Register scopes (permissions)
                      options.RegisterScopes(configuration.Applications.SelectMany(a => a.Scopes).Distinct().ToArray());

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TCPOS.Authentication.OpenId.Producer.Configuration;
 using TCPOS.Authentication.OpenId.Producer.Extensions;
@@ -7,7 +8,7 @@ namespace AuthenticationServer;
 
 public static class Startup
 {
-    public static async Task ConfigureApp(WebApplication app)
+    public static async Task<WebApplication> ConfigureApp(this WebApplication app)
     {
         //app.MapGet("/", () => "Hello World!");
         if (app.Environment.IsDevelopment())
@@ -27,16 +28,25 @@ public static class Startup
         });
 
         await app.UseOpenIdProducer();
+        return app;
     }
 
-    public static void ConfigureBuilder(WebApplicationBuilder builder)
+    public static WebApplicationBuilder ConfigureBuilder(this WebApplicationBuilder builder)
     {
+        // Add identity types
+        builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
+               .AddDefaultTokenProviders();
+        builder.Services.AddTransient<IUserStore<ApplicationUser>, TestApplicationUserStore>();
+        builder.Services.AddTransient<IUserPasswordStore<ApplicationUser>, TestApplicationUserStore>();
+        builder.Services.AddTransient<IPasswordValidator<ApplicationUser>, TestPasswordValidator>();
+        builder.Services.AddTransient<IRoleStore<ApplicationRole>, TestApplicationRoleStore>();
+
         builder.Services.AddControllersWithViews();
         builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
                 {
                     options.LoginPath = "/account/login";
-                });     
+                });
 
         builder.Services.AddDbContext<DbContext>(options =>
         {
@@ -69,5 +79,6 @@ public static class Startup
             application.RedirectUris.Add(new Uri("https://localhost:7290/auth/login/callback"));
             c.Applications.Add(application);
         });
+        return builder;
     }
 }
