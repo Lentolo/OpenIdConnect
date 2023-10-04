@@ -34,7 +34,8 @@ public static class Startup
     public static WebApplicationBuilder ConfigureBuilder(this WebApplicationBuilder builder)
     {
         // Add identity types
-        builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
+        builder.Services
+               .AddIdentity<ApplicationUser, ApplicationRole>()
                .AddDefaultTokenProviders();
         builder.Services.AddTransient<IUserStore<ApplicationUser>, TestApplicationUserStore>();
         builder.Services.AddTransient<IUserPasswordStore<ApplicationUser>, TestApplicationUserStore>();
@@ -42,7 +43,8 @@ public static class Startup
         builder.Services.AddTransient<IRoleStore<ApplicationRole>, TestApplicationRoleStore>();
 
         builder.Services.AddControllersWithViews();
-        builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+        builder.Services
+               .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
                 {
                     options.LoginPath = "/account/login";
@@ -58,6 +60,7 @@ public static class Startup
         });
         builder.Services.AddOpenIdProducer(c =>
         {
+            c.OpenIdDbContext = typeof(DbContext);
             c.AllowAuthorizationCodeFlow = true;
             c.AuthorizationEndpointUri = new Uri("/auth/connect/authorize", UriKind.Relative);
             c.RequirePKCE = true;
