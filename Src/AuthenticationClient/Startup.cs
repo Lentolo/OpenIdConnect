@@ -66,16 +66,16 @@ public static class Startup
         // Add services to the container.
         builder.Services.AddControllersWithViews();
 
-        builder.Services.AddDbContext<DbContext>(options =>
-        {
-            // Configure the context to use sqlite.
-            options.UseSqlite($"Filename={Path.GetDirectoryName(typeof(Program).Assembly.Location)}\\db.sqlite");
+        //builder.Services.AddDbContext<DbContext>(options =>
+        //{
+        //    // Configure the context to use sqlite.
+        //    options.UseSqlite($"Filename={Path.GetDirectoryName(typeof(Program).Assembly.Location)}\\db.sqlite");
 
-            // Register the entity sets needed by OpenIddict.
-            // Note: use the generic overload if you need
-            // to replace the default OpenIddict entities.
-            options.UseOpenIddict();
-        });
+        //    // Register the entity sets needed by OpenIddict.
+        //    // Note: use the generic overload if you need
+        //    // to replace the default OpenIddict entities.
+        //    options.UseOpenIddict();
+        //});
 
         builder.Services.AddAuthentication(options =>
                 {
@@ -91,7 +91,6 @@ public static class Startup
 
         builder.Services.AddOpenIdConsumer(c =>
         {
-            c.OpenIdDbContext = typeof(DbContext);
             c.Issuer = new Uri("https://localhost:7177");
             c.ClientId = "test";
             c.ClientSecret = "test-test";

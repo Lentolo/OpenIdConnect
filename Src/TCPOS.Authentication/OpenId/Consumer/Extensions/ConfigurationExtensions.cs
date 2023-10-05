@@ -18,6 +18,8 @@ public static class ConfigurationExtensions
         configuration.EnsureValid();
         services.AddSingleton(configuration);
 
+        services.ConfigureServicesOpenIdDbContext(configuration.OpenIdDbContext);
+
         services.AddOpenIddict()
                  // Register the OpenIddict core components.
                 .AddCore(options =>

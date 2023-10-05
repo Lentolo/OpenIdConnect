@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using TCPOS.Authentication.Utils.Extensions;
 
 namespace TCPOS.Authentication.OpenId.Common;
@@ -32,6 +33,7 @@ internal static class ConfigureOpenIdDbContext
             services.AddDbContext<DbContext>(o =>
             {
                 o.UseInMemoryDatabase("OpenID");
+                o.UseOpenIddict();
             });
         }
     }

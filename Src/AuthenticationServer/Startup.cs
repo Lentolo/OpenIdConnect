@@ -11,6 +11,11 @@ public static class Startup
 {
     public static async Task<WebApplication> ConfigureApp(this WebApplication app)
     {
+        //using var scope=app.Services.CreateScope();
+        //await using var ctx=scope.ServiceProvider.GetRequiredService<DbContext>();
+        //await ctx.Database.EnsureDeletedAsync();
+        //await ctx.Database.EnsureCreatedAsync();
+
         //app.MapGet("/", () => "Hello World!");
         if (app.Environment.IsDevelopment())
         {
@@ -52,17 +57,17 @@ public static class Startup
                     options.LoginPath = "/account/login";
                 });
 
-        builder.Services.AddDbContext<DbContext>(options =>
-        {
-            // Configure the context to use sqlite.
-            options.UseSqlite($"Filename={Path.GetDirectoryName(typeof(Program).Assembly.Location)}\\db.sqlite");
+        //builder.Services.AddDbContext<DbContext>(options =>
+        //{
+        //    // Configure the context to use sqlite.
+        //    options.UseSqlite($"Filename={Path.GetDirectoryName(typeof(Program).Assembly.Location)}\\db.sqlite");
 
-            // Register the entity sets needed by OpenIddict.
-            options.UseOpenIddict();
-        });
+        //    // Register the entity sets needed by OpenIddict.
+        //    options.UseOpenIddict();
+        //});
         builder.Services.AddOpenIdProducer(c =>
         {
-            c.OpenIdDbContext = typeof(DbContext);
+            //c.OpenIdDbContext = typeof(DbContext);
             c.AllowAuthorizationCodeFlow = true;
             c.AuthorizationEndpointUri = new Uri("/auth/connect/authorize", UriKind.Relative);
             c.RequirePKCE = true;

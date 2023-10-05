@@ -38,9 +38,9 @@ public class AccountController : Controller
                     new(ClaimTypes.Name, model.Username)
                 };
 
-                var claimsIdentity = new ClaimsIdentity(claims);
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-                await HttpContext.SignInAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
                 if (Url.IsLocalUrl(model.ReturnUrl))
                 {
