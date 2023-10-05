@@ -3,24 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace AuthenticationServer;
 
-public class TestPasswordValidator : IPasswordValidator<ApplicationUser>
-{
-    public Task<IdentityResult> ValidateAsync(UserManager<ApplicationUser> manager, ApplicationUser user, string? password)
-    {
-        if (string.Equals(user.PasswordHash, password, StringComparison.OrdinalIgnoreCase))
-        {
-            return Task.FromResult(IdentityResult.Success);
-        }
-
-        return Task.FromResult(IdentityResult.Failed(new IdentityError
-        {
-            Code = "InvalidPassword",
-            Description = "InvalidPassword"
-        }));
-    }
-}
-
-public class TestApplicationUserStore : IUserStore<ApplicationUser>, IUserPasswordStore<ApplicationUser>
+public class TestApplicationUserStore : IUserPasswordStore<ApplicationUser>
 {
     private readonly ConcurrentBag<ApplicationUser> _data = new()
     {
@@ -28,19 +11,19 @@ public class TestApplicationUserStore : IUserStore<ApplicationUser>, IUserPasswo
         {
             UserId = "U1",
             UserName = "UN1",
-            PasswordHash = "PH1"
+            PasswordHash = "P1"
         },
         new ApplicationUser
         {
             UserId = "U2",
             UserName = "UN2",
-            PasswordHash = "PH2"
+            PasswordHash = "P2"
         },
         new ApplicationUser
         {
             UserId = "U3",
             UserName = "UN3",
-            PasswordHash = "PH3"
+            PasswordHash = "P3"
         }
     };
 
@@ -60,9 +43,7 @@ public class TestApplicationUserStore : IUserStore<ApplicationUser>, IUserPasswo
     }
 
     public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
+    { }
 
     public async Task<string> GetUserIdAsync(ApplicationUser user, CancellationToken cancellationToken)
     {

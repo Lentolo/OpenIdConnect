@@ -39,7 +39,7 @@ public static class Startup
                .AddDefaultTokenProviders();
         builder.Services.AddTransient<IUserStore<ApplicationUser>, TestApplicationUserStore>();
         builder.Services.AddTransient<IUserPasswordStore<ApplicationUser>, TestApplicationUserStore>();
-        builder.Services.AddTransient<IPasswordValidator<ApplicationUser>, TestPasswordValidator>();
+        builder.Services.AddTransient<IPasswordHasher<ApplicationUser>, TestPasswordHasher>();
         builder.Services.AddTransient<IRoleStore<ApplicationRole>, TestApplicationRoleStore>();
 
         builder.Services.AddControllersWithViews();
