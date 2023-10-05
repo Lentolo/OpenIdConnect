@@ -16,13 +16,12 @@ internal class Delegates
         var request = httpContext.GetOpenIddictServerRequest() ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
 
         // Retrieve the user principal stored in the authentication cookie.
-        var result = await httpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        var result = await httpContext.AuthenticateAsync();
 
         // If the user principal can't be extracted, redirect the user to the login page.
         if (!result.Succeeded)
         {
-            await httpContext.ChallengeAsync(CookieAuthenticationDefaults.AuthenticationScheme,
-                                             new AuthenticationProperties
+            await httpContext.ChallengeAsync(new AuthenticationProperties
                                              {
                                                  RedirectUri = httpContext.Request.PathBase + httpContext.Request.Path + QueryString.Create(httpContext.Request.HasFormContentType ? httpContext.Request.Form.ToList() : httpContext.Request.Query.ToList())
                                              });

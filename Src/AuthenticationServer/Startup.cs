@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using TCPOS.Authentication.Identity;
 using TCPOS.Authentication.OpenId.Producer.Configuration;
 using TCPOS.Authentication.OpenId.Producer.Extensions;
 
@@ -37,6 +38,7 @@ public static class Startup
         builder.Services
                .AddIdentity<ApplicationUser, ApplicationRole>()
                .AddDefaultTokenProviders();
+
         builder.Services.AddTransient<IUserStore<ApplicationUser>, TestApplicationUserStore>();
         builder.Services.AddTransient<IUserPasswordStore<ApplicationUser>, TestApplicationUserStore>();
         builder.Services.AddTransient<IPasswordHasher<ApplicationUser>, TestPasswordHasher>();
@@ -45,7 +47,7 @@ public static class Startup
         builder.Services.AddControllersWithViews();
         builder.Services
                .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-               .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+               .AddCookie(options =>
                 {
                     options.LoginPath = "/account/login";
                 });

@@ -4,18 +4,17 @@ using System.Threading.Tasks;
 using AuthenticationClient;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using TCPOS.Authentication.Identity;
 using TCPOS.Authentication.OpenId.Consumer.Extensions;
 
 public static class Startup
 {
     public static async Task ConfigureApp(WebApplication app)
     {
-        using var scope = app.Services.CreateScope();
-        await scope.ServiceProvider.GetService<DbContext>()!.Database.EnsureCreatedAsync();
-
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {
@@ -29,6 +28,7 @@ public static class Startup
 
         app.UseRouting();
 
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllerRoute("default",
@@ -55,6 +55,14 @@ public static class Startup
 
     public static void ConfigureBuilder(WebApplicationBuilder builder)
     {
+        builder.Services
+               .AddIdentity<ApplicationUser, ApplicationRole>()
+               .AddDefaultTokenProviders();
+
+        builder.Services.AddTransient<IUserStore<ApplicationUser>, TestApplicationUserStore>();
+        builder.Services.AddTransient<IUserPasswordStore<ApplicationUser>, TestApplicationUserStore>();
+        builder.Services.AddTransient<IPasswordHasher<ApplicationUser>, TestPasswordHasher>();
+        builder.Services.AddTransient<IRoleStore<ApplicationRole>, TestApplicationRoleStore>();
         // Add services to the container.
         builder.Services.AddControllersWithViews();
 
@@ -68,7 +76,6 @@ public static class Startup
             // to replace the default OpenIddict entities.
             options.UseOpenIddict();
         });
-        builder.Services.AddControllersWithViews();
 
         builder.Services.AddAuthentication(options =>
                 {
@@ -84,6 +91,7 @@ public static class Startup
 
         builder.Services.AddOpenIdConsumer(c =>
         {
+            c.OpenIdDbContext = typeof(DbContext);
             c.Issuer = new Uri("https://localhost:7177");
             c.ClientId = "test";
             c.ClientSecret = "test-test";

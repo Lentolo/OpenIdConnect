@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using OpenIddict.Server.AspNetCore;
+using TCPOS.Authentication.Identity;
 
 namespace AuthenticationServer.Controllers;
 
@@ -21,23 +23,24 @@ public class AccountController : Controller
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login([FromServices] SignInManager<ApplicationUser> signInManager, LoginViewModel model)
+    public async Task<IActionResult> Login(LoginViewModel model)
     {
         ViewData["ReturnUrl"] = model.ReturnUrl;
 
         if (ModelState.IsValid)
         {
-            var result = await signInManager.PasswordSignInAsync(model.Username, model.Password, false, true);
-            if(result.Succeeded)
+            var signInManager = HttpContext.RequestServices.GetService<SignInManager<ApplicationUser>?>();
+
+            if (signInManager == null || (await signInManager.PasswordSignInAsync(model.Username, model.Password, false, true)).Succeeded)
             {
                 var claims = new List<Claim>
                 {
                     new(ClaimTypes.Name, model.Username)
                 };
 
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var claimsIdentity = new ClaimsIdentity(claims);
 
-                await HttpContext.SignInAsync(new ClaimsPrincipal(claimsIdentity));
+                await HttpContext.SignInAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
                 if (Url.IsLocalUrl(model.ReturnUrl))
                 {
@@ -46,6 +49,7 @@ public class AccountController : Controller
 
                 return RedirectToAction(nameof(HomeController.Index), "Home");
             }
+
             ViewData["Errors"] = "Unable to login";
             return View(model);
         }
