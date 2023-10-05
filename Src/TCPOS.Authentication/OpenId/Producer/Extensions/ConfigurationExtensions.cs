@@ -109,7 +109,7 @@ public static class ConfigurationExtensions
 
         app.ChainIf(configuration.AllowClientCredentialsFlow || configuration.AllowAuthorizationCodeFlow, a =>
         {
-            app.MapPost(configuration.TokenEndpointUri!.MakeAbsolute(new Uri("http://fake.host")).PathAndQuery, Delegates.Delegates.Exchange);
+            app.MapPost(configuration.TokenEndpointUri!.MakeAbsolute(new Uri("http://fake.host")).PathAndQuery, Delegates.Delegates.Token);
         });
 
         using var scope = app.Services.CreateScope();

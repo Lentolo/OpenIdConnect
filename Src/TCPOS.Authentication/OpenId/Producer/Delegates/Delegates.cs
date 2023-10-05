@@ -16,15 +16,15 @@ internal class Delegates
         var request = httpContext.GetOpenIddictServerRequest() ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
 
         // Retrieve the user principal stored in the authentication cookie.
-        var result = await httpContext.AuthenticateAsync();
+        var result = await httpContext.AuthenticateAsync( CookieAuthenticationDefaults.AuthenticationScheme);
 
         // If the user principal can't be extracted, redirect the user to the login page.
         if (!result.Succeeded)
         {
-            await httpContext.ChallengeAsync(new AuthenticationProperties
-                                             {
-                                                 RedirectUri = httpContext.Request.PathBase + httpContext.Request.Path + QueryString.Create(httpContext.Request.HasFormContentType ? httpContext.Request.Form.ToList() : httpContext.Request.Query.ToList())
-                                             });
+            await httpContext.ChallengeAsync( CookieAuthenticationDefaults.AuthenticationScheme,new AuthenticationProperties
+            {
+                RedirectUri = httpContext.Request.PathBase + httpContext.Request.Path + QueryString.Create(httpContext.Request.HasFormContentType ? httpContext.Request.Form.ToList() : httpContext.Request.Query.ToList())
+            });
             return;
         }
 
@@ -47,7 +47,7 @@ internal class Delegates
         await httpContext.SignInAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme, claimsPrincipal);
     }
 
-    public static async Task Exchange(HttpContext httpContext)
+    public static async Task Token(HttpContext httpContext)
     {
         var request = httpContext.GetOpenIddictServerRequest() ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
 
@@ -73,7 +73,7 @@ internal class Delegates
         else if (request.IsAuthorizationCodeGrantType())
         {
             // Retrieve the claims principal stored in the authorization code
-            claimsPrincipal = (await httpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal;
+            claimsPrincipal = (await httpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal ?? throw new NullReferenceException("Invalid principal");
         }
         else
         {
